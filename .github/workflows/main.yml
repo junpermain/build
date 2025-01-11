@@ -1,0 +1,20 @@
+name: "Build Armbian"
+on:
+  workflow_dispatch:
+jobs:
+  build-armbian:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Armbian build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-core build-essential device-tree-compiler u-boot-tools gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
+
+      - name: Clone Armbian build repository
+        run: |
+          git clone https://github.com/armbian/build.git armbian-build
+          cd armbian-build
+          sudo ./compile.sh BOARD=x86 BRANCH=current RELEASE=focal BUILD_MINIMAL=yes BUILD_DESKTOP=no KERNEL_CONFIGURE=no

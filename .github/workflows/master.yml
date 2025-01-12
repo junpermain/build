@@ -1,0 +1,50 @@
+name: "Build Armbian with Arozos"
+on:
+  workflow_dispatch:
+jobs:
+  build-armbian:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Armbian build repository
+        uses: actions/checkout@v3
+        with:
+          repository: silime/armbian
+          ref: master  # 指定使用master分支
+          path: armbian-build
+
+      - name: Checkout Arozos repository
+        uses: actions/checkout@v3
+        with:
+          repository: tobychui/arozos
+          path: arozos
+
+      - name: Build Armbian
+        run: |
+          cd armbian-build
+          ./compile.sh \
+            BOARD=x86 \
+            BRANCH=current \
+            RELEASE=jammy \
+            BUILD_MINIMAL=yes \
+            BUILD_DESKTOP=no \
+            KERNEL_CONFIGURE=no \
+            ARMBIAN_TOKEN=${{ secrets.GITHUB_TOKEN }}
+        env:
+          ARMBIAN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Arozos
+        run: |
+          cd arozos
+          sudo ./installer/install.sh
+
+      - name: Customize Armbian with Arozos
+        run: |
+          cd armbian-build
+          # 在这里可以添加自定义的命令，例如将arozos服务设置为开机启动等
+          # 例如：sudo systemctl enable arozos
+
+      - name: Upload Armbian Image
+        uses: actions/upload-artifact@v3
+        with:
+          name: Armbian-Image
+          path: armbian-build/output/images/*.img
